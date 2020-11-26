@@ -89,10 +89,10 @@ screenshot()
 echo start
 cd $(dirname $0)
 date
-md=$(date +%m%d)
-grep $md 2020_jiejiari.json && {
+md=$(date +%Y%m%d)
+grep $md jiejiari.json && {
   :
-  rc=$(cat 2020_jiejiari.json | python -c "import sys, json; print json.load(sys.stdin)['$md']")
+  rc=$(cat jiejiari.json | python -c "import sys, json; print (json.load(sys.stdin)['$md'])")
   if [[ ${rc}x != '0x' ]] ; then exit ; fi
 } || {
   :
@@ -115,7 +115,7 @@ adb -s $sn shell dumpsys window policy | grep 'mScreenOnFully=true' || {
   sleep 3
 } && {
   adb -s $sn shell am start -n com.alibaba.android.rimet/.biz.LaunchHomeActivity
-  sleep 11
+  sleep 16
   screenshot
   [[ -n ${MIPUSHID} ]] && curl "https://script.haokaikai.cn/MiPush/index.php?id=${MIPUSHID}&title=%E9%92%89%E9%92%89%E9%80%9A%E7%9F%A5&msg=%E6%89%93%E5%8D%A1%E6%88%90%E5%8A%9F"
   if [[ -n ${SCKEY} ]] ; then
