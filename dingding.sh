@@ -83,8 +83,9 @@ screenshot()
   S=$(date +%S)
   dstdir=/sdcard/dingding_screencap/$Y$m
   [[ -d $dstdir ]] || mkdir -p $dstdir
+  [[ -f $dstdir/.nomedia ]] || touch $dstdir/.nomedia
   adb -s $sn shell screencap -p $dstdir/screen_${Ymd_HMS}.png
-  url="http://zhxjzec.liangfei.vip:8000/$Y$m/screen_${Ymd_HMS}.png"
+  url="http://xjz.liangfei.vip:8000/$Y$m/screen_${Ymd_HMS}.png"
 }
 echo start
 cd $(dirname $0)
@@ -101,7 +102,8 @@ grep $md jiejiari.json && {
 }
 ping -W 2 -c 1 www.baidu.com && : || { adb -s $sn shell svc data enable ; adb -s $sn shell svc wifi disable ;
     if [[ -n ${MIPUSHID} ]] ; then
-      curl "https://script.haokaikai.cn/MiPush/index.php?id=${MIPUSHID}&title=%E9%92%89%E9%92%89%E6%89%93%E5%8D%A1&msg=%E5%85%B3%E9%97%ADwifi%E6%89%93%E5%BC%80data" ;
+      :
+      #curl "https://script.haokaikai.cn/MiPush/index.php?id=${MIPUSHID}&title=%E9%92%89%E9%92%89%E6%89%93%E5%8D%A1&msg=%E5%85%B3%E9%97%ADwifi%E6%89%93%E5%BC%80data" ;
     fi
     if [[ -n ${SCKEY} ]] ; then
       curl "https://sc.ftqq.com/${SCKEY}.send?text=%E9%92%89%E9%92%89%E6%89%93%E5%8D%A1close%20wifi%20and%20open%20data"
@@ -121,7 +123,7 @@ adb -s $sn shell dumpsys window policy | grep 'mScreenOnFully=true' || {
   if [[ -n ${SCKEY} ]] ; then
     content="钉钉打卡截图
     "'!'"[pic]($url)"
-    curl "https://sc.ftqq.com/${SCKEY}.send?text=%e9%92%89%e9%92%89%e6%89%93%e5%8d%a1%e6%88%90%e5%8a%9f" -d "&desp=$content"
+    curl "https://sc.ftqq.com/${SCKEY}.send?text=%e9%92%89%e9%92%89%e6%9e%81%e9%80%9f%e6%89%93%e5%8d%a1%e6%88%90%e5%8a%9f" -d "&desp=$content"
   fi
   sleep 1
   adb -s $sn shell input keyevent 3
