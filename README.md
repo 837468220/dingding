@@ -3,6 +3,8 @@
 
 termux 0.94
 
+/data/data/com.termux/files/usr/bin/adb
+打开手机网络调试
 安装crond
 
 pkg install cronie
