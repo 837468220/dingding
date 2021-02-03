@@ -7,7 +7,7 @@ termux 0.94
 打开手机网络调试
 安装crond
 
-pkg install cronie
+pkg install cronie runit termux-services
 
 $ crontab -l
 
