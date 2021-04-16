@@ -1,5 +1,6 @@
 #!/bin/bash
 exec 1>>~/dingding/dingding.log 2>&1
+export LC_ALL=C
 set -xv
 #-o表示短选项，两个冒号表示该选项有一个可选参数，可选参数必须紧贴选项
 #    如-carg 而不能是-c arg
@@ -72,6 +73,10 @@ done
 #curl "https://sc.ftqq.com/${SCKEY}.send?text=%e9%92%89%e9%92%89%e6%89%93%e5%8d%a1%e6%88%90%e5%8a%9f"
 url=
 sn=emulator-5554
+adb devices | grep $sn || {
+  curl "http://sc.ftqq.com/${SCKEY}.send?text=adb%20devices%20error"
+  exit
+}
 screenshot()
 {
   Ymd_HMS=$(date +%Y%m%d%H%M%S)
@@ -130,5 +135,6 @@ adb -s $sn shell dumpsys window policy | grep 'mScreenOnFully=true' || {
   sleep 5
 }
 adb -s $sn shell dumpsys window policy | grep 'mScreenOnFully=true' && adb -s $sn shell input keyevent 26
+date
 echo end
 #exit 0
