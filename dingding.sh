@@ -13,7 +13,8 @@ set -xv
 # mkdir -- -f 这样-f就不会被作为选项。
 SCKEY=
 MIPUSHID=
-TEMP=$(getopt -o -- --long 'mipushid::,sckey::' -n 'dingding.sh' -- "$@")
+PUSHPLUSTOKEN=
+TEMP=$(getopt -o -- --long 'mipushid::,sckey::,pushplustoken::' -n 'dingding.sh' -- "$@")
 if [ $? -ne 0 ]; then
   echo 'Terminating...' >&2
   exit 1
@@ -54,6 +55,19 @@ while true; do
       shift 2
       continue
     ;;
+    '--pushplustoken')
+      case "$2" in
+        '')
+          echo 'Option pushplustoken, no argument'
+        ;;
+        *)
+          echo "Option pushplustoken, argument '$2'"
+          PUSHPLUSTOKEN=$2
+        ;;
+      esac
+      shift 2
+      continue
+    ;;
     '--')
       shift
       break
@@ -73,7 +87,7 @@ done
 #curl "https://sc.ftqq.com/${SCKEY}.send?text=%e9%92%89%e9%92%89%e6%89%93%e5%8d%a1%e6%88%90%e5%8a%9f"
 url=
 sn=emulator-5554
-adb devices | grep $sn || {
+LC_ALL=C adb devices | grep $sn || {
   curl "http://sc.ftqq.com/${SCKEY}.send?text=adb%20devices%20error"
   exit
 }
@@ -89,10 +103,19 @@ screenshot()
   dstdir=/sdcard/dingding_screencap/$Y$m
   [[ -d $dstdir ]] || mkdir -p $dstdir
   [[ -f $dstdir/.nomedia ]] || touch $dstdir/.nomedia
-  adb -s $sn shell screencap -p $dstdir/screen_${Ymd_HMS}.png
+  LC_ALL=C adb -s $sn shell screencap -p $dstdir/screen_${Ymd_HMS}.png
   url="http://xjz.liangfei.vip:8000/$Y$m/screen_${Ymd_HMS}.png"
 }
 echo start
+ping -W 2 -c 1 www.baidu.com && : || { LC_ALL=C adb -s $sn shell svc data enable ; LC_ALL=C adb -s $sn shell svc wifi disable ;
+    if [[ -n ${MIPUSHID} ]] ; then
+      :
+      #curl "https://script.haokaikai.cn/MiPush/index.php?id=${MIPUSHID}&title=%E9%92%89%E9%92%89%E6%89%93%E5%8D%A1&msg=%E5%85%B3%E9%97%ADwifi%E6%89%93%E5%BC%80data" ;
+    fi
+    if [[ -n ${SCKEY} ]] ; then
+      curl "http://sc.ftqq.com/${SCKEY}.send?text=%E9%92%89%E9%92%89%E6%89%93%E5%8D%A1close%20wifi%20and%20open%20data"
+    fi
+}
 cd $(dirname $0)
 date
 md=$(date +%Y%m%d)
@@ -105,23 +128,14 @@ grep $md jiejiari.json && {
   u=$(date +%u)
   if [[ ${u}x == '6x' ||  ${u}x == '7x' ]] ; then exit ; fi
 }
-ping -W 2 -c 1 www.baidu.com && : || { adb -s $sn shell svc data enable ; adb -s $sn shell svc wifi disable ;
-    if [[ -n ${MIPUSHID} ]] ; then
-      :
-      #curl "https://script.haokaikai.cn/MiPush/index.php?id=${MIPUSHID}&title=%E9%92%89%E9%92%89%E6%89%93%E5%8D%A1&msg=%E5%85%B3%E9%97%ADwifi%E6%89%93%E5%BC%80data" ;
-    fi
-    if [[ -n ${SCKEY} ]] ; then
-      curl "http://sc.ftqq.com/${SCKEY}.send?text=%E9%92%89%E9%92%89%E6%89%93%E5%8D%A1close%20wifi%20and%20open%20data"
-    fi
-}
 #sleep $(($(head -1 /dev/urandom | cksum.exe | awk '{print $1}')%600))
 sleep $(($RANDOM%600))
 date
-adb -s $sn shell dumpsys window policy | grep 'mScreenOnFully=true' || {
-  adb -s $sn shell input keyevent 26
+LC_ALL=C adb -s $sn shell dumpsys window policy | grep 'mScreenOnFully=true' || {
+  LC_ALL=C adb -s $sn shell input keyevent 26
   sleep 3
 } && {
-  adb -s $sn shell am start -n com.alibaba.android.rimet/.biz.LaunchHomeActivity
+  LC_ALL=C adb -s $sn shell am start -n com.alibaba.android.rimet/.biz.LaunchHomeActivity
   sleep 16
   screenshot
   [[ -n ${MIPUSHID} ]] && curl "https://script.haokaikai.cn/MiPush/index.php?id=${MIPUSHID}&title=%E9%92%89%E9%92%89%E9%80%9A%E7%9F%A5&msg=%E6%89%93%E5%8D%A1%E6%88%90%E5%8A%9F"
@@ -130,11 +144,19 @@ adb -s $sn shell dumpsys window policy | grep 'mScreenOnFully=true' || {
     "'!'"[pic]($url)"
     curl "http://sc.ftqq.com/${SCKEY}.send?text=%e9%92%89%e9%92%89%e6%9e%81%e9%80%9f%e6%89%93%e5%8d%a1%e6%88%90%e5%8a%9f" -d "&desp=$content"
   fi
+  if [[ -n ${PUSHPLUSTOKEN} ]] ; then
+    :
+    content="<img src=$url>"
+    contenturl=$(printf 打卡截图  | od -An -tx1 | tr ' ' % | tr -d '\n')$(date +%Y/%m/%d-%H:%M)%0a$(echo -n $content  | od -An -tx1 | tr ' ' % | tr -d '\n')
+    title="打卡结果推送"
+    titleurl=$(printf $title | od -An -tx1 | tr ' ' % | tr -d '\n')
+    curl "http://www.pushplus.plus/send?token=${PUSHPLUSTOKEN}&title=$titleurl&content=$contenturl&template=html"
+  fi
   sleep 1
-  adb -s $sn shell input keyevent 3
+  LC_ALL=C adb -s $sn shell input keyevent 3
   sleep 5
 }
-adb -s $sn shell dumpsys window policy | grep 'mScreenOnFully=true' && adb -s $sn shell input keyevent 26
+LC_ALL=C adb -s $sn shell dumpsys window policy | grep 'mScreenOnFully=true' && LC_ALL=C adb -s $sn shell input keyevent 26
 date
 echo end
 #exit 0
